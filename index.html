@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Question For You 💕</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+  // EmailJS initialization — replace YOUR_PUBLIC_KEY below
+  (function(){ emailjs.init({ publicKey: "YOUR_PUBLIC_KEY" }); })();
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --rose: #C94F7C;
+    --rose-light: #F2A8C4;
+    --rose-pale: #FDE8F0;
+    --gold: #C9A96E;
+    --cream: #FFF8F0;
+    --dark: #2A1A1F;
+    --mid: #7A4E5E;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Lato', sans-serif;
+    background: var(--cream);
+    overflow-x: hidden;
+  }
+
+  /* ── Floating petals background ── */
+  #petal-canvas {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── Screens ── */
+  .screen {
+    display: none;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+  .screen.active { display: flex; }
+
+  /* ── Screen 1: Opening ── */
+  #screen-1 .envelope-wrap {
+    cursor: pointer;
+    animation: float 3s ease-in-out infinite;
+    margin-bottom: 2rem;
+  }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+  .envelope {
+    width: 120px; height: 90px;
+    background: var(--rose);
+    border-radius: 4px;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(201,79,124,0.35);
+    transition: transform 0.3s;
+  }
+  .envelope:hover { transform: scale(1.07); }
+  .envelope::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 0; height: 0;
+    border-left: 60px solid transparent;
+    border-right: 60px solid transparent;
+    border-top: 48px solid #a83866;
+  }
+  .envelope::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0;
+    width: 0; height: 0;
+    border-left: 60px solid #b8436e;
+    border-right: 60px solid #b8436e;
+    border-top: 50px solid transparent;
+  }
+  .envelope-flap {
+    position: absolute; top: 0; left: 0;
+    width: 0; height: 0;
+    border-left: 60px solid transparent;
+    border-right: 60px solid transparent;
+    border-top: 50px solid var(--rose-light);
+    z-index: 2;
+    transform-origin: top center;
+    transition: transform 0.5s ease;
+  }
+  .envelope:hover .envelope-flap { transform: rotateX(160deg); }
+
+  #screen-1 h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+  }
+  #screen-1 p {
+    color: var(--mid);
+    font-weight: 300;
+    font-size: 1.05rem;
+    margin-bottom: 2rem;
+  }
+  .btn-open {
+    background: var(--rose);
+    color: white;
+    border: none;
+    padding: 14px 40px;
+    border-radius: 50px;
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(201,79,124,0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .btn-open:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(201,79,124,0.5); }
+
+  /* ── Screen 2: The Letter ── */
+  #screen-2 .letter-paper {
+    background: white;
+    border-radius: 4px;
+    padding: 2.5rem 2rem;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 4px 40px rgba(42,26,31,0.12), 0 0 0 1px rgba(201,79,124,0.08);
+    position: relative;
+    animation: slideUp 0.7s cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes slideUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
+
+  .letter-paper::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--rose-light), var(--rose), var(--gold), var(--rose-light));
+    border-radius: 4px 4px 0 0;
+  }
+
+  .letter-date {
+    font-size: 0.8rem;
+    color: var(--mid);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .letter-paper h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--rose);
+    margin-bottom: 1.25rem;
+  }
+
+  .letter-paper p {
+    font-size: 0.97rem;
+    color: var(--dark);
+    line-height: 1.85;
+    margin-bottom: 1rem;
+    font-weight: 300;
+  }
+
+  .letter-sig {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    color: var(--rose);
+    margin-top: 1.5rem;
+  }
+
+  .heart-divider {
+    color: var(--rose-light);
+    font-size: 1.2rem;
+    letter-spacing: 0.5rem;
+    margin: 1rem 0;
+  }
+
+  .btn-next {
+    margin-top: 1.75rem;
+    background: var(--rose);
+    color: white;
+    border: none;
+    padding: 13px 36px;
+    border-radius: 50px;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(201,79,124,0.35);
+  }
+  .btn-next:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(201,79,124,0.45); }
+
+  /* ── Screen 3: Reasons ── */
+  #screen-3 h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    color: var(--dark);
+    margin-bottom: 0.4rem;
+    animation: slideUp 0.6s both;
+  }
+  #screen-3 .subtitle {
+    color: var(--mid);
+    font-weight: 300;
+    margin-bottom: 2rem;
+    animation: slideUp 0.6s 0.1s both;
+  }
+
+  .reasons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    max-width: 560px;
+    width: 100%;
+    margin-bottom: 2rem;
+    animation: slideUp 0.6s 0.2s both;
+  }
+
+  .reason-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem 1rem;
+    box-shadow: 0 2px 16px rgba(42,26,31,0.07);
+    border: 1px solid rgba(201,79,124,0.1);
+    transition: transform 0.25s, box-shadow 0.25s;
+    cursor: default;
+  }
+  .reason-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(201,79,124,0.18); }
+
+  .reason-card .icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
+  .reason-card h3 { font-size: 0.85rem; font-weight: 400; letter-spacing: 0.06em; color: var(--rose); text-transform: uppercase; margin-bottom: 0.3rem; }
+  .reason-card p { font-size: 0.88rem; color: var(--dark); font-weight: 300; line-height: 1.5; }
+
+  /* ── Screen 4: The Question ── */
+  #screen-4 {
+    background: radial-gradient(ellipse at center, #fff0f5 0%, var(--cream) 70%);
+  }
+
+  .ring-container {
+    margin-bottom: 2rem;
+    animation: float 3s ease-in-out infinite;
+  }
+  .ring-svg { filter: drop-shadow(0 8px 20px rgba(201,79,124,0.3)); }
+
+  #screen-4 h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 6vw, 3rem);
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+    animation: slideUp 0.5s both;
+  }
+  #screen-4 .sub {
+    color: var(--mid);
+    font-weight: 300;
+    font-size: 1rem;
+    margin-bottom: 2.5rem;
+    animation: slideUp 0.5s 0.1s both;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+    min-height: 60px;
+    width: 100%;
+    max-width: 400px;
+    animation: slideUp 0.5s 0.2s both;
+  }
+
+  .btn-yes {
+    background: var(--rose);
+    color: white;
+    border: none;
+    padding: 15px 48px;
+    border-radius: 50px;
+    font-family: 'Lato', sans-serif;
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(201,79,124,0.45);
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 5;
+  }
+  .btn-yes:hover { transform: scale(1.06); box-shadow: 0 10px 32px rgba(201,79,124,0.55); }
+
+  .btn-no {
+    background: white;
+    color: var(--mid);
+    border: 1px solid rgba(201,79,124,0.25);
+    padding: 15px 36px;
+    border-radius: 50px;
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: absolute;
+  }
+
+  #no-hint {
+    margin-top: 80px;
+    font-size: 0.85rem;
+    color: var(--rose-light);
+    font-style: italic;
+    min-height: 20px;
+    animation: fadeIn 0.4s both;
+  }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+  /* ── Screen 5: Celebration ── */
+  #screen-5 { background: radial-gradient(ellipse at center, #fff0f5 0%, var(--cream) 70%); }
+
+  .firework-emoji { font-size: 4rem; margin-bottom: 1rem; animation: pop 0.5s cubic-bezier(.16,1,.3,1) both; }
+  @keyframes pop { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+
+  #screen-5 h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 5vw, 2.5rem);
+    color: var(--rose);
+    margin-bottom: 0.75rem;
+    animation: slideUp 0.5s 0.2s both;
+  }
+  #screen-5 p {
+    color: var(--dark);
+    font-weight: 300;
+    font-size: 1rem;
+    line-height: 1.8;
+    max-width: 420px;
+    animation: slideUp 0.5s 0.35s both;
+  }
+  .gold-text { color: var(--gold); font-family: 'Playfair Display', serif; font-style: italic; }
+
+  .hearts-burst {
+    display: flex;
+    gap: 8px;
+    font-size: 1.5rem;
+    margin: 1.5rem 0;
+    animation: slideUp 0.5s 0.5s both;
+  }
+  .hearts-burst span { animation: pop 0.4s both; }
+  .hearts-burst span:nth-child(1){animation-delay:0.5s}
+  .hearts-burst span:nth-child(2){animation-delay:0.6s}
+  .hearts-burst span:nth-child(3){animation-delay:0.7s}
+  .hearts-burst span:nth-child(4){animation-delay:0.8s}
+  .hearts-burst span:nth-child(5){animation-delay:0.9s}
+
+  /* ── Confetti ── */
+  .confetti {
+    position: fixed;
+    top: -10px;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 999;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0%  { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+    100%{ transform: translateY(110vh) rotate(800deg) scale(0.5); opacity: 0; }
+  }
+
+  /* ── Progress dots ── */
+  .progress-dots {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; z-index: 10;
+  }
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--rose-light);
+    transition: background 0.3s, transform 0.3s;
+  }
+  .dot.active { background: var(--rose); transform: scale(1.3); }
+</style>
+</head>
+<body>
+
+<canvas id="petal-canvas"></canvas>
+
+<!-- Screen 1: Opening -->
+<div class="screen active" id="screen-1">
+  <div class="envelope-wrap" onclick="goTo(2)">
+    <div class="envelope">
+      <div class="envelope-flap"></div>
+    </div>
+  </div>
+  <h1>I have something to tell you...</h1>
+  <p>A little letter, written from the heart 💌</p>
+  <button class="btn-open" onclick="goTo(2)">Open my letter</button>
+</div>
+
+<!-- Screen 2: The Letter -->
+<div class="screen" id="screen-2">
+  <div class="letter-paper">
+    <div class="letter-date" id="letter-date"></div>
+    <h2>My Dearest,</h2>
+    <p>Some feelings are too big for words — but I'm going to try anyway, because you deserve to know exactly how much you mean to me.</p>
+    <p>Every day I spend with you feels like a gift I didn't know I needed. Your laugh, your kindness, your little quirks — they've quietly become my favourite things in the world.</p>
+    <div class="heart-divider">♥ ♥ ♥</div>
+    <p>I don't want to imagine a version of my life that doesn't have you in it. And so, there's something I've been wanting to ask you...</p>
+    <div class="letter-sig">— Always yours 💕</div>
+    <br>
+    <button class="btn-next" onclick="goTo(3)">Continue reading →</button>
+  </div>
+</div>
+
+<!-- Screen 3: Reasons I Love You -->
+<div class="screen" id="screen-3">
+  <h2>Why I love you</h2>
+  <p class="subtitle">Just a few of the million reasons...</p>
+  <div class="reasons-grid">
+    <div class="reason-card">
+      <div class="icon">😄</div>
+      <h3>Your laugh</h3>
+      <p>It's the most contagious sound in the world and it instantly makes everything better.</p>
+    </div>
+    <div class="reason-card">
+      <div class="icon">🤝</div>
+      <h3>Your heart</h3>
+      <p>You care so deeply for the people around you. Your kindness is effortless and genuine.</p>
+    </div>
+    <div class="reason-card">
+      <div class="icon">✨</div>
+      <h3>Your presence</h3>
+      <p>Every room you walk into feels warmer. You make ordinary moments feel special.</p>
+    </div>
+    <div class="reason-card">
+      <div class="icon">🌙</div>
+      <h3>Every quiet moment</h3>
+      <p>Even doing nothing together is my favourite thing. You make silence feel safe.</p>
+    </div>
+    <div class="reason-card">
+      <div class="icon">💪</div>
+      <h3>Your strength</h3>
+      <p>The way you face challenges with grace and courage inspires me every single day.</p>
+    </div>
+    <div class="reason-card">
+      <div class="icon">🌸</div>
+      <h3>Just you</h3>
+      <p>Every tiny, beautiful thing that makes you, <em>you</em>. I love all of it.</p>
+    </div>
+  </div>
+  <button class="btn-next" onclick="goTo(4)">There's more... →</button>
+</div>
+
+<!-- Screen 4: The Question -->
+<div class="screen" id="screen-4">
+  <div class="ring-container">
+    <svg class="ring-svg" width="110" height="110" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="55" cy="65" r="30" fill="none" stroke="#C9A96E" stroke-width="8"/>
+      <circle cx="55" cy="65" r="22" fill="none" stroke="#F2D49B" stroke-width="2" stroke-dasharray="4 3"/>
+      <polygon points="55,12 61,28 78,28 65,38 70,55 55,44 40,55 45,38 32,28 49,28" fill="#C94F7C" stroke="#a83866" stroke-width="1.5"/>
+      <polygon points="55,18 59.5,30 72,30 62,37.5 66,50 55,42 44,50 48,37.5 38,30 50.5,30" fill="#F2A8C4" opacity="0.6"/>
+      <line x1="55" y1="50" x2="55" y2="34" stroke="white" stroke-width="1.2" opacity="0.7"/>
+    </svg>
+  </div>
+  <h2>Will you be mine?</h2>
+  <p class="sub">My heart is waiting for your answer... 🥺</p>
+  <div class="btn-row" id="btn-row">
+    <button class="btn-yes" onclick="sayYes()">Yes, always! 💕</button>
+    <button class="btn-no" id="noBtn" onmouseover="runAway()" onclick="runAway()">Maybe later</button>
+  </div>
+  <p id="no-hint"></p>
+</div>
+
+<!-- Screen 5: Celebration -->
+<div class="screen" id="screen-5">
+  <div class="firework-emoji">🎊</div>
+  <h2>She said YES! 💖</h2>
+  <div class="hearts-burst">
+    <span>💕</span><span>🌹</span><span>💖</span><span>🌹</span><span>💕</span>
+  </div>
+  <p>
+    You just made me the happiest person alive.<br><br>
+    I promise to love you every day,<br>
+    to make you smile when the world feels heavy,<br>
+    and to always, always choose <span class="gold-text">you</span>. 🌹
+  </p>
+</div>
+
+<!-- Progress dots -->
+<div class="progress-dots" id="dots">
+  <div class="dot active" id="d1"></div>
+  <div class="dot" id="d2"></div>
+  <div class="dot" id="d3"></div>
+  <div class="dot" id="d4"></div>
+  <div class="dot" id="d5"></div>
+</div>
+
+<script>
+// ── Date ──
+document.getElementById('letter-date').textContent =
+  new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+// ── Screen navigation ──
+let currentScreen = 1;
+function goTo(n) {
+  document.getElementById('screen-' + currentScreen).classList.remove('active');
+  document.getElementById('screen-' + n).classList.add('active');
+  currentScreen = n;
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById('d' + i).classList.toggle('active', i === n);
+  }
+  if (n === 5) setTimeout(launchConfetti, 300);
+}
+
+// ── Runaway No button ──
+let noCount = 0;
+const hints = [
+  "Psst... Yes is a much better choice 😅",
+  "Are you suuure? 🥺",
+  "Come on, you know you want to... 💕",
+  "My heart is waiting right here! 💓",
+  "One tiny click is all I ask 🌸",
+  "I'll wait here forever, you know 😭",
+  "The button keeps running because it knows too! 🙈"
+];
+function runAway() {
+  const row = document.getElementById('btn-row');
+  const btn = document.getElementById('noBtn');
+  const rw = row.offsetWidth, rh = 60;
+  const bw = btn.offsetWidth, bh = btn.offsetHeight;
+  const randX = Math.random() * (rw - bw);
+  const randY = (Math.random() - 0.5) * 120;
+  btn.style.left = randX + 'px';
+  btn.style.top = (randY - bh / 2) + 'px';
+  document.getElementById('no-hint').textContent = hints[Math.min(noCount, hints.length - 1)];
+  noCount++;
+}
+
+// ── Yes ──
+function sayYes() {
+  goTo(5);
+  sendYesEmail();
+}
+
+function sendYesEmail() {
+  const time = new Date().toLocaleString('en-GB', {
+    day: 'numeric', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+
+  // Using EmailJS free service to send notification
+  emailjs.send("service_proposal", "template_proposal", {
+    to_email: "minatodaniel7@outlook.com",
+    reply_time: time,
+    message: "She said YES! 💕 Your proposal was accepted on " + time
+  }).then(function() {
+    console.log('Email sent successfully!');
+  }, function(error) {
+    // Fallback: open mail client
+    const subject = encodeURIComponent("She said YES! 💕");
+    const body = encodeURIComponent(
+      "Your love proposal was accepted!\n\n" +
+      "She clicked YES on " + time + " 💖\n\n" +
+      "Congratulations! 🎊"
+    );
+    window.open("mailto:minatodaniel7@outlook.com?subject=" + subject + "&body=" + body);
+  });
+}
+
+// ── Confetti ──
+function launchConfetti() {
+  const colors = ['#C94F7C','#F2A8C4','#C9A96E','#F2D49B','#AFA9EC','#9FE1CB'];
+  for (let i = 0; i < 80; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.width = (6 + Math.random() * 8) + 'px';
+    el.style.height = (6 + Math.random() * 8) + 'px';
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    el.style.animationDuration = (2 + Math.random() * 2.5) + 's';
+    el.style.animationDelay = (Math.random() * 1.5) + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 5000);
+  }
+}
+
+// ── Floating petals ──
+(function() {
+  const canvas = document.getElementById('petal-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, petals = [];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function createPetal() {
+    return {
+      x: Math.random() * W,
+      y: -20,
+      size: 6 + Math.random() * 8,
+      speedY: 0.5 + Math.random() * 1,
+      speedX: (Math.random() - 0.5) * 0.8,
+      rotation: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.04,
+      opacity: 0.3 + Math.random() * 0.4,
+      color: Math.random() > 0.5 ? '#F2A8C4' : '#FDDDE9'
+    };
+  }
+
+  for (let i = 0; i < 18; i++) {
+    const p = createPetal();
+    p.y = Math.random() * H;
+    petals.push(p);
+  }
+
+  function drawPetal(p) {
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rotation);
+    ctx.globalAlpha = p.opacity;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, p.size, p.size * 0.55, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    petals.forEach(p => {
+      p.y += p.speedY;
+      p.x += p.speedX + Math.sin(p.y * 0.02) * 0.3;
+      p.rotation += p.rotSpeed;
+      if (p.y > H + 20) { Object.assign(p, createPetal()); }
+      drawPetal(p);
+    });
+    if (petals.length < 18 && Math.random() < 0.02) petals.push(createPetal());
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+</script>
+</body>
+</html>
